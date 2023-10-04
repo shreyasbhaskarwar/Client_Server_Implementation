@@ -11,20 +11,38 @@ let startClient () =
         let stream = client.GetStream()
         let reader = new StreamReader(stream)
         let writer = new StreamWriter(stream)
-        let mutable result = -Int32.MinValue
+        let mutable result = ""
+        let mutable terminate = false
         
         let! welcomeMessage = reader.ReadLineAsync() |> Async.AwaitTask
         Console.WriteLine($"{welcomeMessage}")
         
-        while result <> -5 do
+        while result <> "exit" do
             let command = Console.ReadLine()
             Console.WriteLine($"Sending command: {command}")
             do! writer.WriteLineAsync(command) |> Async.AwaitTask
             do! writer.FlushAsync() |> Async.AwaitTask
             
+            if command = "terminate"
+            then
+                terminate <- true
+            
             let! response = reader.ReadLineAsync() |> Async.AwaitTask
-            result <- int(response)
-            Console.WriteLine($"Server response: {result}")
+            match response with
+            | "-1" -> result <- "incorrect operation command" 
+            | "-2" -> result <- "number of inputs is less than two" 
+            | "-3" -> result <- "number of inputs is more than four" 
+            | "-4" -> result <- "one or more of the inputs contain(s) non-number(s)"
+            | "-5" -> result <- "exit" 
+            | _ -> result <- response
+            
+            if not terminate
+            then
+                if result <> "exit"
+                then
+                    Console.WriteLine($"Server response: {result}")
+                else
+                    Console.WriteLine($"result")
             
         client.Close() 
     }
