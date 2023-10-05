@@ -44,7 +44,9 @@ let startClient () =
                 else
                     Console.WriteLine($"result")
             
-        client.Close() 
+        client.GetStream().Close()
+        client.Close()
+        client.Dispose()
     }
 
 [<EntryPoint>]

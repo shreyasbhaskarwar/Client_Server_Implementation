@@ -84,7 +84,9 @@ let handleClient (clientSocket: TcpClient, clientId: int) =
                 do! writer.WriteLineAsync(string(response)) |> Async.AwaitTask
                 do! writer.FlushAsync() |> Async.AwaitTask
 
+        clientSocket.GetStream().Close()
         clientSocket.Close()
+        clientSocket.Dispose()
     }
 
 let startServer () =
@@ -97,10 +99,12 @@ let startServer () =
         Console.WriteLine($"Server is running and listening on port {serverPort}.")
 
         while not terminate do
-            let! client = listener.AcceptTcpClientAsync() |> Async.AwaitTask
-            let! clientTask = handleClient (client, clientId) |> Async.StartChild
-            clientTask |> ignore
-            clientId <- clientId + 1
+            if (listener.Pending())
+            then
+                let! client = listener.AcceptTcpClientAsync() |> Async.AwaitTask
+                let! clientTask = handleClient (client, clientId) |> Async.StartChild
+                clientTask |> ignore
+                clientId <- clientId + 1
             
         listener.Stop()
     }
