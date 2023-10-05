@@ -42,7 +42,7 @@ let startClient () =
                 then
                     Console.WriteLine($"Server response: {result}")
                 else
-                    Console.WriteLine($"result")
+                    Console.WriteLine($"{result}")
             
         client.GetStream().Close()
         client.Close()

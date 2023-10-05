@@ -4,6 +4,7 @@ open System.Net
 open System.Net.Sockets
 open Microsoft.FSharp.Collections
 open Microsoft.FSharp.Control
+open System.Collections.Generic
 
 let serverPort = 12345
 let ipAddress = "127.0.0.1"
@@ -13,6 +14,7 @@ let VALID_FUNCTIONS = [ "add"; "subtract"; "multiply" ]
 let MIN_WORDS = 3
 // Maximum words in the input - 1 command + 4 inputs = 5
 let MAX_WORDS = 5
+let mutable clientList = List<TcpClient>()
 
 let validateInput (input :string) :int =
     let words :string[] = input.Split ' '
@@ -105,11 +107,16 @@ let startServer () =
                 let! clientTask = handleClient (client, clientId) |> Async.StartChild
                 clientTask |> ignore
                 clientId <- clientId + 1
+                clientList.Add(client)
             
+        for clientSocket in clientList do
+            clientSocket.Close()
+            clientSocket.Dispose()
+        
         listener.Stop()
     }
 
 [<EntryPoint>]
-let main args =
-    startServer () |> Async.RunSynchronously
+let main _ =
+    Async.RunSynchronously(startServer())
     0
